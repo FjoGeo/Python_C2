@@ -37,6 +37,8 @@ c2_project/
 
 ---
 
+---
+
 ## 🧪 Development Phases
 
 ### ✅ Phase 1: Agent ↔ Server (Basic Command Shell)
