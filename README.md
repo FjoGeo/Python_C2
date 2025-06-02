@@ -41,6 +41,7 @@ c2_project/
 
 - [ ] encrypt communication
 - [ ] server: handle larger messages
+- [ ] argparse for execution within a terminal
 - [ ] profit
 
 ---
