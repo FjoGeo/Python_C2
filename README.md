@@ -20,6 +20,7 @@
 
 ## Project Structure
 
+```
 c2_project/
 ├── server/
 │ ├── c2_server.py # TCP/HTTP server core
@@ -32,6 +33,7 @@ c2_project/
 │
 ├── shared/
 │ └── file_utils.py # Upload/download logic
+```
 
 ---
 
