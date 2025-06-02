@@ -37,6 +37,14 @@ c2_project/
 
 ---
 
+# TODO:
+
+- [ ] encrypt communication
+- [ ] server: handle larger messages
+- [ ] profit
+
+---
+
 ## 🧪 Development Phases
 
 ### ✅ Phase 1: Agent ↔ Server (Basic Command Shell)
