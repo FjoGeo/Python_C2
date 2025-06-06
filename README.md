@@ -1,5 +1,7 @@
 # C2 Server
 
+Project is in development.
+
 ## C2 Server
 
     - Listens for connections from agents (via TCP or HTTP)
