@@ -1,6 +1,6 @@
 # C2 Server
 
-Project is in development.
+A simple C2 server that controls that controls an agent, allowing it to execute shell commands, capture keyboard input and upload and download files.
 
 ## C2 Server
 
@@ -8,7 +8,6 @@ Project is in development.
     - Receives agent info, sends commands
     - Stores logs (keystrokes, results, etc.)
     - Handles file transfers
-    - Exposes a web dashboard (via Flask or FastAPI)
 
 ## Agent
 
@@ -24,13 +23,15 @@ Project is in development.
 c2_project/
 ├── server/
 │ ├── c2_server.py # TCP/HTTP server core
-│ ├── dashboard.py # Flask dashboard
-│ ├── agent_handler.py # Manage agent sessions
 │ └── logs/ # Keystrokes, outputs
 │
 ├── agent/
 │ └── agent.py # Connects to C2
-│
-├── shared/
-│ └── file_utils.py # Upload/download logic
+
 ```
+
+## Future Upgrades
+
+    - Dashboard with Flaks or Django
+    - Multi-Agent handling
+    - additional tools for enumeration
