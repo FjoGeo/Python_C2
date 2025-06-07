@@ -1,6 +1,6 @@
 # C2 Server
 
-A simple C2 server that controls that controls an agent, allowing it to execute shell commands, capture keyboard input and upload and download files.
+A simple C2 server that controls an agent, allowing it to execute shell commands, capture keyboard input and upload and download files.
 
 ## C2 Server
 
