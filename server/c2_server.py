@@ -6,7 +6,6 @@ class C2Server:
     def __init__(self, host, port):
         self.host = host
         self.port = port
-        self.start_server()
 
     def receive_file(self, conn, filename):
         try:
@@ -91,3 +90,4 @@ if __name__ == "__main__":
     host = "0.0.0.0"
     port = 9999
     c2_server = C2Server(host, port)
+    c2_server.start_server()
