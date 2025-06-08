@@ -18,11 +18,7 @@ A simple C2 server that controls an agent, allowing it to execute shell commands
     - Captures keystrokes (on host OS)
     - Handles file upload/download to/from server
 
-```
-
 ## Future Upgrades
 
     - Multi-Agent handling
     - additional tools for enumeration
-
-```
