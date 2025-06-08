@@ -75,4 +75,6 @@ server_port = 9999
 
 Then run the agent on the target machine:
 
-`python agent.py`
+```bash
+python agent.py
+```
